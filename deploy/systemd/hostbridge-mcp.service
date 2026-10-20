@@ -8,7 +8,7 @@ Type=simple
 User=hostbridge
 Group=hostbridge
 
-WorkingDirectory=/opt/hostbridge-mcp/app
+WorkingDirectory=/opt/hostbridge-mcp
 EnvironmentFile=/etc/hostbridge-mcp.env
 
 ExecStart=/opt/hostbridge-mcp/.venv/bin/uvicorn hostbridge_mcp.server:app --host 127.0.0.1 --port 8765 --workers 1
