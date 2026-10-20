@@ -3,12 +3,12 @@
     "remote-vps": {
       "command": "mcp-remote",
       "args": [
-        "https://ssh.example.com/mcp",
+        "https://mcp.example.com/mcp",
         "--header",
         "Authorization: ${AUTH_HEADER}"
       ],
       "env": {
-        "AUTH_HEADER": "Bearer ${env:YOUR_RANDOM_AUTH_TOKEN_HERE}"
+        "AUTH_HEADER": "Bearer ${env:HOSTBRIDGE_MCP_TOKEN}"
       }
     }
   }
