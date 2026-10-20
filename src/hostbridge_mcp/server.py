@@ -31,8 +31,8 @@ MAX_FILE = int(os.getenv("MCP_MAX_FILE_BYTES", "1048576"))
 MAX_TIMEOUT = int(os.getenv("MCP_MAX_TIMEOUT", "120"))
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-log = logging.getLogger("remote-mcp")
-mcp = MCPServer("VPS Remote Operations")
+log = logging.getLogger("hostbridge-mcp")
+mcp = MCPServer("HostBridge MCP")
 
 
 def safe_path(name: str) -> Path:
