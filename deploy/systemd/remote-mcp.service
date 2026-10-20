@@ -1,0 +1,26 @@
+[Unit]
+Description=Remote MCP Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=remcp
+Group=remcp
+
+WorkingDirectory=/opt/remote-mcp/app
+EnvironmentFile=/etc/remote-mcp.env
+
+ExecStart=/opt/remote-mcp/venv/bin/uvicorn server:app --host 127.0.0.1 --port 8765 --workers 1
+
+Restart=on-failure
+RestartSec=5
+
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/srv/agent-workspace
+
+[Install]
+WantedBy=multi-user.target
