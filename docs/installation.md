@@ -46,9 +46,9 @@ Replace the following illustrative values with your actual deployment settings:
 | Service account | `hostbridge` | Dedicated Linux principal |
 | Environment file | `/etc/hostbridge-mcp.env` | Server token/settings |
 | Workspace | `/srv/agent-workspace` | Initial file-tool scope, if implemented |
-| Listen endpoint | `172.18.0.1:8765` | **Example only**; replace Docker bridge gateway |
+| Listen endpoint | `127.0.0.1:8765` | **Example only**; replace Docker bridge gateway |
 | Public MCP URL | `https://mcp.example.com/mcp` | HTTPS endpoint |
-| systemd unit | `remote-mcp.service` | Existing repository unit filename |
+| systemd unit | `hostbridge-mcp.service` | Existing repository unit filename |
 
 > **Repository contract:** The files under `deploy/` are templates. Verify actual environment variable names, exported ASGI app name, command flags, and tool names against the **current** `server.py`. References such as `MCP_ACCESS_TOKEN`, `MCP_FILE_ROOT`, `MCP_ENABLE_COMMANDS`, and `server:app` only apply if the deployed code implements them.
 
@@ -81,7 +81,7 @@ Skip user creation if it already exists. Do **not** add the account to the `dock
 
 ```bash
 sudo install -m 600 -o root -g root \
-  deploy/env/remote-mcp.env.example /etc/hostbridge-mcp.env
+  deploy/env/hostbridge-mcp.env.example /etc/hostbridge-mcp.env
 sudoedit /etc/hostbridge-mcp.env
 ```
 
@@ -91,7 +91,7 @@ If the example expects `MCP_ACCESS_TOKEN`, generate a random value with `openssl
 
 ### 6. Install the systemd unit
 
-Review `deploy/systemd/remote-mcp.service` and match `User`, `WorkingDirectory`, `EnvironmentFile`, and `ExecStart` to the installation.
+Review `deploy/systemd/hostbridge-mcp.service` and match `User`, `WorkingDirectory`, `EnvironmentFile`, and `ExecStart` to the installation.
 
 For an installable `src/` package exporting an ASGI object named `app`, one possible startup configuration is:
 
@@ -101,7 +101,7 @@ For an installable `src/` package exporting an ASGI object named `app`, one poss
 User=hostbridge
 WorkingDirectory=/opt/hostbridge-mcp
 EnvironmentFile=/etc/hostbridge-mcp.env
-ExecStart=/opt/hostbridge-mcp/.venv/bin/uvicorn hostbridge_mcp.server:app --host 172.18.0.1 --port 8765 --workers 1
+ExecStart=/opt/hostbridge-mcp/.venv/bin/uvicorn hostbridge_mcp.server:app --host 127.0.0.1 --port 8765 --workers 1
 Restart=on-failure
 RestartSec=5
 ```
@@ -109,12 +109,12 @@ RestartSec=5
 If the project exports a different entry point, use that instead. Adjust the copied unit **before** starting it:
 
 ```bash
-sudo install -m 644 deploy/systemd/remote-mcp.service \
-  /etc/systemd/system/remote-mcp.service
+sudo install -m 644 deploy/systemd/hostbridge-mcp.service \
+  /etc/systemd/system/hostbridge-mcp.service
 sudo systemctl daemon-reload
-sudo systemctl enable --now remote-mcp
-sudo systemctl status remote-mcp --no-pager
-sudo journalctl -u remote-mcp -n 80 --no-pager
+sudo systemctl enable --now hostbridge-mcp
+sudo systemctl status hostbridge-mcp --no-pager
+sudo journalctl -u hostbridge-mcp -n 80 --no-pager
 ```
 
 Systemd restrictions such as `ProtectSystem=strict` and `ReadWritePaths` may limit file writes and host operations. Adjust privileges narrowly instead of disabling hardening wholesale.
@@ -132,11 +132,11 @@ docker network inspect <network-name> --format \
 
 Bind the MCP process to a host interface reachable by the Nginx container, but not directly exposed to the Internet. Add host-firewall restrictions for the allowed sources. Do **not** publish port 8765 externally.
 
-Based on `deploy/nginx/remote-mcp.conf.example`, add an HTTPS route (assuming `/mcp` is also the upstream MCP path):
+Based on `deploy/nginx/hostbridge-mcp.conf.example`, add an HTTPS route (assuming `/mcp` is also the upstream MCP path):
 
 ```nginx
 location /mcp {
-    proxy_pass http://172.18.0.1:8765;
+    proxy_pass http://127.0.0.1:8765;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-Proto https;
@@ -227,9 +227,9 @@ Begin with read-only tools. Once authentication and audit behavior have been ver
 cd /opt/hostbridge-mcp
 git pull --ff-only
 uv sync --locked
-sudo systemctl restart remote-mcp
-sudo systemctl status remote-mcp --no-pager
-sudo journalctl -u remote-mcp -f
+sudo systemctl restart hostbridge-mcp
+sudo systemctl status hostbridge-mcp --no-pager
+sudo journalctl -u hostbridge-mcp -f
 ```
 
 | Symptom | What to check |
@@ -284,9 +284,9 @@ HostBridge MCP 将 Linux VPS 的文件操作和命令执行能力以 MCP Streama
 | 服务用户 | `hostbridge` | 最小权限运行 MCP |
 | 环境文件 | `/etc/hostbridge-mcp.env` | 服务端 Token 与配置 |
 | 工作目录 | `/srv/agent-workspace` | 文件工具的初始访问范围（如服务支持） |
-| 监听地址 | `172.18.0.1:8765` | 示例 Docker 网桥网关地址，**必须替换** |
+| 监听地址 | `127.0.0.1:8765` | 示例 Docker 网桥网关地址，**必须替换** |
 | 公网 URL | `https://mcp.example.com/mcp` | Cursor/Codex 的 MCP 地址 |
-| systemd 单元 | `remote-mcp.service` | 按仓库现有文件名 |
+| systemd 单元 | `hostbridge-mcp.service` | 按仓库现有文件名 |
 
 > **注意：** `deploy/` 目录中的配置为仓库提供的模板。此文档没有预设 `server.py` 的确切环境变量名、启动对象以及工具名；部署时必须以当前仓库版本为准。下面给出的 `MCP_ACCESS_TOKEN`、`MCP_FILE_ROOT`、`MCP_ENABLE_COMMANDS` 等变量及 `server:app` 仅适用于服务端确实实现了这些约定的版本。
 
@@ -326,7 +326,7 @@ sudo chmod 750 /srv/agent-workspace
 
 ```bash
 sudo install -m 600 -o root -g root \
-  deploy/env/remote-mcp.env.example /etc/hostbridge-mcp.env
+  deploy/env/hostbridge-mcp.env.example /etc/hostbridge-mcp.env
 sudoedit /etc/hostbridge-mcp.env
 ```
 
@@ -342,7 +342,7 @@ sudoedit /etc/hostbridge-mcp.env
 
 ### 6. 配置 systemd
 
-先检查 `deploy/systemd/remote-mcp.service` 中的 `WorkingDirectory`、`User`、`EnvironmentFile`、`ExecStart`，确保与本机实际路径一致。
+先检查 `deploy/systemd/hostbridge-mcp.service` 中的 `WorkingDirectory`、`User`、`EnvironmentFile`、`ExecStart`，确保与本机实际路径一致。
 
 如果服务暴露 `app` ASGI 对象，且使用 `src/` 布局安装，可用的启动方式之一是：
 
@@ -352,7 +352,7 @@ sudoedit /etc/hostbridge-mcp.env
 User=hostbridge
 WorkingDirectory=/opt/hostbridge-mcp
 EnvironmentFile=/etc/hostbridge-mcp.env
-ExecStart=/opt/hostbridge-mcp/.venv/bin/uvicorn hostbridge_mcp.server:app --host 172.18.0.1 --port 8765 --workers 1
+ExecStart=/opt/hostbridge-mcp/.venv/bin/uvicorn hostbridge_mcp.server:app --host 127.0.0.1 --port 8765 --workers 1
 Restart=on-failure
 RestartSec=5
 ```
@@ -360,12 +360,12 @@ RestartSec=5
 如果当前 `server.py` 不是以 `app` 作为 ASGI 入口，必须使用项目实际支持的入口；不要直接照搬上述 `ExecStart`。
 
 ```bash
-sudo install -m 644 deploy/systemd/remote-mcp.service \
-  /etc/systemd/system/remote-mcp.service
+sudo install -m 644 deploy/systemd/hostbridge-mcp.service \
+  /etc/systemd/system/hostbridge-mcp.service
 sudo systemctl daemon-reload
-sudo systemctl enable --now remote-mcp
-sudo systemctl status remote-mcp --no-pager
-sudo journalctl -u remote-mcp -n 80 --no-pager
+sudo systemctl enable --now hostbridge-mcp
+sudo systemctl status hostbridge-mcp --no-pager
+sudo journalctl -u hostbridge-mcp -n 80 --no-pager
 ```
 
 若模板内监听地址尚未更新，请**先编辑目标单元**，再执行 `enable --now`。注意：`systemd` 的 `ProtectSystem=strict`、`ProtectHome`、`ReadWritePaths` 等选项可能阻止文件写入或 Docker 管理，应按所需权限精确调整，而非一次性关闭全部限制。
@@ -383,13 +383,13 @@ docker network inspect <network-name> --format \
   '{{(index .IPAM.Config 0).Gateway}}'
 ```
 
-如果 MCP 监听在宿主机网桥网关（例如 `172.18.0.1:8765`），该地址应仅供内部网络访问，并通过防火墙限制允许的来源。**不要直接将 8765 映射到公网。**
+如果 MCP 监听在宿主机网桥网关（例如 `127.0.0.1:8765`），该地址应仅供内部网络访问，并通过防火墙限制允许的来源。**不要直接将 8765 映射到公网。**
 
-参考 `deploy/nginx/remote-mcp.conf.example`，在现有 HTTPS 虚拟主机中添加 MCP 路由。以下配置假设 MCP 的上游路径也是 `/mcp`：
+参考 `deploy/nginx/hostbridge-mcp.conf.example`，在现有 HTTPS 虚拟主机中添加 MCP 路由。以下配置假设 MCP 的上游路径也是 `/mcp`：
 
 ```nginx
 location /mcp {
-    proxy_pass http://172.18.0.1:8765;
+    proxy_pass http://127.0.0.1:8765;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
     proxy_set_header X-Forwarded-Proto https;
@@ -482,9 +482,9 @@ codex mcp list
 cd /opt/hostbridge-mcp
 git pull --ff-only
 uv sync --locked
-sudo systemctl restart remote-mcp
-sudo systemctl status remote-mcp --no-pager
-sudo journalctl -u remote-mcp -f
+sudo systemctl restart hostbridge-mcp
+sudo systemctl status hostbridge-mcp --no-pager
+sudo journalctl -u hostbridge-mcp -f
 ```
 
 | 现象 | 检查方向 |
