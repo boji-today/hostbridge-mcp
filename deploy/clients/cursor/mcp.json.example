@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "remote-vps": {
+      "url": "https://ssh.example.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:YOUR_RANDOM_AUTH_TOKEN_HERE}"
+      }
+    }
+  }
+}
