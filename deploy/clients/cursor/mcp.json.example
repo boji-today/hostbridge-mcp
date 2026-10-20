@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "remote-vps": {
-      "url": "https://ssh.example.com/mcp",
+      "url": "https://mcp.example.com/mcp",
       "headers": {
         "Authorization": "Bearer ${env:HOSTBRIDGE_MCP_TOKEN}"
       }
