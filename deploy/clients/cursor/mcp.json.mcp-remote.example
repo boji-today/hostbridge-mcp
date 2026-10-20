@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "remote-vps": {
+    "hostbridge": {
       "command": "mcp-remote",
       "args": [
         "https://mcp.example.com/mcp",
