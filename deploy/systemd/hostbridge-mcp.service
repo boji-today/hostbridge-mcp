@@ -1,17 +1,17 @@
 [Unit]
-Description=Remote MCP Server
+Description=HostBridge MCP Server
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-User=remcp
-Group=remcp
+User=hostbridge
+Group=hostbridge
 
-WorkingDirectory=/opt/remote-mcp/app
-EnvironmentFile=/etc/remote-mcp.env
+WorkingDirectory=/opt/hostbridge-mcp/app
+EnvironmentFile=/etc/hostbridge-mcp.env
 
-ExecStart=/opt/remote-mcp/venv/bin/uvicorn server:app --host 127.0.0.1 --port 8765 --workers 1
+ExecStart=/opt/hostbridge-mcp/.venv/bin/uvicorn hostbridge_mcp.server:app --host 127.0.0.1 --port 8765 --workers 1
 
 Restart=on-failure
 RestartSec=5
